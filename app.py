@@ -1,4 +1,4 @@
-from flask import Flask, Response
+from flask import Flask, Response, render_template
 import random
 import time
 import json
@@ -14,6 +14,9 @@ image_urls = [
 ]
 
 
+historical_data = []
+
+
 @app.route("/stream")
 def stream():
     def event_stream():
@@ -23,6 +26,11 @@ def stream():
             name = os.path.splitext(os.path.basename(image_url))[0]
 
             data = {"name": name, "timestamp": timestamp, "image": image_url}
+
+            historical_data.append(data)
+
+            if len(historical_data) > 100:  # Keep only the latest 100 events
+                historical_data.pop(0)
 
             data_json = json.dumps(data)
             yield f"data: {data_json}\n\n"
@@ -34,7 +42,13 @@ def stream():
 
 @app.route("/")
 def index():
-    return app.send_static_file("index.html")
+    return render_template("index.html")
+    # return app.send_static_file("index.html")
+
+
+@app.route("/history")
+def history():
+    return render_template("history.html", historical_data=reversed(historical_data))
 
 
 if __name__ == "__main__":

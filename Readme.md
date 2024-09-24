@@ -1,14 +1,12 @@
-# Flask Project with Poetry
+# Flask SSE demo Project
 
-This is a Flask project managed with Poetry. It provides a simple setup for developing a Flask application.
+This is a Flask project managed with Poetry.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
 - [Running the Application](#running-the-application)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Installation
 
@@ -18,6 +16,9 @@ Make sure you have [Poetry](https://python-poetry.org/docs/#installation) instal
 
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
+```
+### Running the Application
+```bash
 poetry install
 export FLASK_APP=app.py
 poetry run flask run
@@ -27,6 +28,7 @@ poetry run flask run
 ```bash
 poetry init
 poetry add flask
+poetry update package
 poetry shell
 poetry run python app.py
 ```
