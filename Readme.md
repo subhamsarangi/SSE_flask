@@ -1,4 +1,4 @@
-# Flask SSE demo Project
+# Flask SSE demo
 
 This is a Flask project managed with Poetry.
 
