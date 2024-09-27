@@ -112,20 +112,37 @@ sudo systemctl enable sse_flask
 `sudo nano /etc/nginx/sites-available/sse_flask`
 
 ```nginx
-server {
+server { 
     listen 80;
     server_name <SERVER_IP>;
 
     location / {
         proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;  # Ensure HTTP/1.1 is used
+        proxy_set_header Upgrade $http_upgrade;  # Handle upgrades
+        proxy_set_header Connection "upgrade";  # Important for WebSockets/SSE
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Add keepalive settings
+        proxy_read_timeout 3600;  # Increase timeout as needed
+        proxy_send_timeout 3600;   # Increase timeout as needed
     }
+
     error_log /var/log/nginx/sse_flask_error.log;
     access_log /var/log/nginx/sse_flask_access.log;
 }
+```
+### notes
+The following lines were added later in order make use of SSE 
+```nginx
+proxy_http_version 1.1;  # Ensure HTTP/1.1 is used
+proxy_set_header Upgrade $http_upgrade;  # Handle upgrades
+proxy_set_header Connection "upgrade";  # Important for WebSockets/SSE
+proxy_read_timeout 3600;  # Increase timeout as needed
+proxy_send_timeout 3600;   # Increase timeout as needed
 ```
 
 ### enable config
