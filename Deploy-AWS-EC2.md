@@ -1,6 +1,17 @@
 # Deploy to EC2
 
-### make EC2 instance create key pair(login). Add security group rule with port 5000.
+### make EC2 instance create key pair(login).
+
+
+### Add security group rules
+
+| Type  | Port range   |
+|------------|------------|
+| SSH | 22 |
+| HTTP | 80 |
+| Custom TCP | 5000 |
+          
+
 
 ### Give permission to the downloaded key file
 `chmod 400 <KEY_NAME>.pem`
