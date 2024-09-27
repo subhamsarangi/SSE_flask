@@ -40,7 +40,7 @@ def stream():
     return Response(event_stream(), mimetype="text/event-stream")
 
 @app.route("/stream_temp")
-def stream():
+def stream_temp():
     def event_stream():
         while True:
             TEXT = random.choice(["backend", "frontend", "cloud", "DevOps", "nextjs", "web3.0", "DSA", "ML"])
