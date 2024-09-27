@@ -3,10 +3,10 @@
 ### make EC2 instance create key pair(login). Add security group rule with port 5000.
 
 ### Give permission to the downloaded key file
-`chmod 400 ec2-key.pem`
+`chmod 400 <KEY_NAME>.pem`
 
 ## log into the EC2 instance
-`ssh -i "ec2-key.pem" ubuntu@<your-instance-hostname>`
+`ssh -i "<KEY_NAME>.pem" <USERNAME>@<INSTANCE_PUBLIC_DNS>`
 
 
 ### update ubuntu and install pip
@@ -40,7 +40,7 @@ sudo apt install python3-pip -y
 `sudo nano .ssh/authorized_keys`
 
 ### open another terminal and generate a public key for the newly created account
-`ssh-keygen -y -f ec2-key.pem`
+`ssh-keygen -y -f <KEY_NAME>.pem`
 
 ### copy the value into the authorized_keys file
 
@@ -103,7 +103,7 @@ sudo systemctl enable sse_flask
 ```nginx
 server {
     listen 80;
-    server_name <YOUR_SERVER_IP>;
+    server_name <SERVER_IP>;
 
     location / {
         proxy_pass http://127.0.0.1:5000;
@@ -124,17 +124,22 @@ server {
 `sudo nginx -t`
 
 ### restart or reload
-`sudo systemctl restart nginx`
-`sudo systemctl reload nginx`
+```bash
+sudo systemctl restart nginx
+sudo systemctl reload nginx
+```
 
 ## check logs
 ### Nginx logs
-
-`sudo tail -f /var/log/nginx/error.log`
-`sudo tail -f /var/log/nginx/access.log`
+```bash
+sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/access.log
+```
 
 ### service logs
-`sudo journalctl -u sse_flask.service`
-`sudo journalctl -f -u sse_flask.service`
+```bash
+sudo journalctl -u sse_flask.service
+sudo journalctl -f -u sse_flask.service
+```
 
 # Set Up GitHub Actions (CI/CD pipeline)
