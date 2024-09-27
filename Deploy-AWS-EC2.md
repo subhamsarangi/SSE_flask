@@ -103,7 +103,7 @@ sudo systemctl enable sse_flask
 ```nginx
 server {
     listen 80;
-    server_name 13.201.28.120;
+    server_name <YOUR_SERVER_IP>;
 
     location / {
         proxy_pass http://127.0.0.1:5000;
