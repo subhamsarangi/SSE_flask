@@ -39,10 +39,21 @@ def stream():
 
     return Response(event_stream(), mimetype="text/event-stream")
 
+@app.route("/stream_temp")
+def stream():
+    def event_stream():
+        while True:
+            TEXT = random.choice(["backend", "frontend", "cloud", "DevOps", "nextjs", "web3.0", "DSA", "ML"])
+            data_json = json.dumps( {"text": TEXT})
+            yield f"data: {data_json}\n\n"
+
+            time.sleep(random.uniform(1, 3))
+
+    return Response(event_stream(), mimetype="text/event-stream")
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index_temp.html")
     # return app.send_static_file("index.html")
 
 
