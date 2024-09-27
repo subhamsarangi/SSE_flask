@@ -1,12 +1,11 @@
 # Deploy to EC2
-[LINK](https://medium.com/@lyle-okoth/how-to-deploy-a-production-grade-flask-application-to-an-aws-ec2-instance-using-github-actions-fabc8c16f8db)1
 
 ### make EC2 instance create key pair(login). Add security group rule with port 5000.
 
 ### Give permission to the downloaded key file
 `chmod 400 ec2-key.pem`
 
-## log into the ec2 instance
+## log into the EC2 instance
 `ssh -i "ec2-key.pem" ubuntu@<your-instance-hostname>`
 
 
@@ -48,12 +47,9 @@ sudo apt install python3-pip -y
 ### Now the new account can log into EC2 directly
 `ssh -i “ec2.pem” lyle@<your-instance-hostname>`
 
-
-# Set Up CICD pipeline
-
+## Setup the Server
 
 ### install poetry
-
 `curl -sSL https://install.python-poetry.org | python3 -
 export PATH="$HOME/.local/bin:$PATH"`
 
@@ -62,19 +58,19 @@ export PATH="$HOME/.local/bin:$PATH"`
 ### install dependencies
 `poetry install`
 
-## Setup Gunicorn
-
 ### install gunicorn
 poetry add gunicorn
 
 ### run server 
-`poetry run gunicorn app:app --bind 0.0.0.0:8000`
+`poetry run gunicorn app:app --bind 0.0.0.0:5000`
 
-### create server
-`sudo nano /etc/systemd/system/SSE_flask.service`
+### Get env path
+`poetry env info --path`
 
 ### Create a Systemd Service
-```bash
+`sudo nano /etc/systemd/system/sse_flask.service`
+
+```ini
 [Unit]
 Description=Gunicorn instance to serve SSE_flask
 After=network.target
@@ -83,69 +79,62 @@ After=network.target
 User=subadmin
 Group=www-data
 WorkingDirectory=/home/subadmin/SSE_flask
-ExecStart=/home/subadmin/.local/bin/poetry run gunicorn --workers 3 --bind unix:/home/subadmin/SSE_flask/SSE_flask.sock app:app --log-file /home/subadmin/SSE_flask/gunicorn.log --access-logfile /home/subadmin/SSE_flask/gunicorn-access.log
+Environment=PATH=/home/subadmin/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/subadmin/.local/bin/poetry run gunicorn --access-logfile - --workers 3 --bind 0.0.0.0:5000 app:app
 Restart=always
 RestartSec=10
-Environment=PATH=/home/subadmin/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 [Install]
 WantedBy=multi-user.target
 
 ```
 
-### enable permission (if necessary)
-`sudo chown subadmin:www-data /home/subadmin/SSE_flask/SSE_flask.sock`
-
 ### Start and Enable the Service
-
-`sudo systemctl start SSE_flask`
-`sudo systemctl enable SSE_flask`
-
-
-## Configure Nginx
-
-
-### create config
-`sudo nano /etc/nginx/sites-available/SSE_flask`
-
 ```bash
+sudo systemctl daemon-reload
+sudo systemctl start sse_flask
+sudo systemctl enable sse_flask
+```
+
+## Configure NGINX
+### create config
+`sudo nano /etc/nginx/sites-available/sse_flask`
+
+```nginx
 server {
     listen 80;
     server_name 13.201.28.120;
 
     location / {
-        include proxy_params;
-        proxy_pass http://unix:/home/subadmin/SSE_flask/SSE_flask.sock;
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
-
-    error_log /var/log/nginx/SSE_flask_error.log;
-    access_log /var/log/nginx/SSE_flask_access.log;
+    error_log /var/log/nginx/sse_flask_error.log;
+    access_log /var/log/nginx/sse_flask_access.log;
 }
-
 ```
-## enable permissions (if necessary)
-`sudo chmod 660 /home/subadmin/SSE_flask/SSE_flask.sock`
 
 ### enable config
-```bash
-sudo ln -s /etc/nginx/sites-available/SSE_flask /etc/nginx/sites-enabled
-sudo nginx -t
-sudo systemctl restart nginx
-sudo systemctl reload nginx
-```
+`sudo ln -s /etc/nginx/sites-available/sse_flask /etc/nginx/sites-enabled/`
 
+### test
+`sudo nginx -t`
+
+### restart or reload
+`sudo systemctl restart nginx`
+`sudo systemctl reload nginx`
+
+## check logs
 ### Nginx logs
 
 `sudo tail -f /var/log/nginx/error.log`
 `sudo tail -f /var/log/nginx/access.log`
 
 ### service logs
-sudo journalctl -u SSE_flask.service
-sudo journalctl -f -u SSE_flask.service
+`sudo journalctl -u sse_flask.service`
+`sudo journalctl -f -u sse_flask.service`
 
-### gunicorn logs
-
-tail -f /home/subadmin/SSE_flask/gunicorn.log
-tail -f /home/subadmin/SSE_flask/gunicorn-access.log
-
-## Set Up GitHub Actions
+# Set Up GitHub Actions (CI/CD pipeline)
