@@ -108,6 +108,7 @@ sudo systemctl enable sse_flask
 ```
 
 ## Configure NGINX
+### [nginx guide](/nginx_guide.md)
 ### create config
 `sudo nano /etc/nginx/sites-available/sse_flask`
 
